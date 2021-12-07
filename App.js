@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
-import {View, Text, SafeAreaView, Keyboard, StyleSheet} from 'react-native';
-import {GiftedChat} from 'react-native-gifted-chat';
+import {View, Text, SafeAreaView, Keyboard, StyleSheet, Image} from 'react-native';
+import {GiftedChat, InputToolbar, Send} from 'react-native-gifted-chat';
 import {Dialogflow_V2} from 'react-native-dialogflow';
 
 import {dialogflow} from './env';
@@ -93,7 +93,7 @@ class App extends Component {
         _id: this.state.messages.length + 1,
         text: `${text}`,
         createdAt: new Date(),
-        user: BOT,
+        user: chatBot,
       };
     }
 
@@ -128,16 +128,82 @@ class App extends Component {
   }
   render() {
     return (
-      <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <SafeAreaView style={{flex: 1}}>
+        <View style={styles.header}>
+        <Text style={{fontSize: 24, fontWeight: 'bold'}}>Lenna Chat Bot</Text>
+        </View>
         <GiftedChat
+          isCustomViewBottom={true}
+          alwaysShowSend={true}
+          alignTop
+          renderSend={props => {
+            return (
+              <Send {...props}>
+                <View style={styles.containerIconSend}>
+                  <Image source={send} style={{height: 40, width: 40}} />
+                </View>
+              </Send>
+            );
+          }}
+          renderInputToolbar={props => {
+            return (
+              <InputToolbar
+                {...props}
+                containerStyle={styles.containerInput}
+                textInputProps={{
+                  style: styles.inputStyle,
+                }}
+              />
+            );
+          }}
           messages={this.state.messages}
           onSend={message => this.onSend(message)}
           onQuickReply={quick => this.onQuickReply(quick)}
           user={{_id: 1}}
         />
-      </View>
+      </SafeAreaView>
+      // <View style={{flex: 1, backgroundColor: '#fff'}}>
+      //   <GiftedChat
+      //     messages={this.state.messages}
+      //     onSend={message => this.onSend(message)}
+      //     onQuickReply={quick => this.onQuickReply(quick)}
+      //     user={{_id: 1}}
+      //   />
+      // </View>
     );
   }
 }
 
+const styles = StyleSheet.create({
+  header: {
+    height: 50,
+    width: '100%',
+    backgroundColor: 'lightblue',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  containerIconSend: {
+    marginHorizontal: 10,
+    marginTop: 10,
+  },
+  containerInput: {
+    marginLeft: 15,
+    marginRight: 30,
+    marginBottom: 10,
+    borderWidth: 0,
+    borderColor: 'transparent',
+    backgroundColor: 'transparent',
+  },
+  inputStyle: {
+    width: '86%',
+    height: '100%',
+    fontSize: 16,
+    color: 'black',
+    paddingTop: 6,
+    paddingLeft: 16,
+    backgroundColor: 'lightblue',
+    borderWidth: 2,
+    borderRadius: 10,
+  },
+});
 export default App;
