@@ -1,112 +1,143 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React, {Component} from 'react';
+import {View, Text, SafeAreaView, Keyboard, StyleSheet} from 'react-native';
+import {GiftedChat} from 'react-native-gifted-chat';
+import {Dialogflow_V2} from 'react-native-dialogflow';
 
-import React from 'react';
-import type {Node} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import {dialogflow} from './env';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const avatarBotChat = require('./assets/images/profile.jpg');
+const send = require('./assets/images/send.png')
 
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+const chatBot = {
+  _id: 2,
+  name: 'Mr.ChatBot',
+  avatar: avatarBotChat,
 };
 
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+class App extends Component {
+  state = {
+    keyboardStatus: undefined,
+    messages: [
+      {
+        _id: 3,
+        text: `
+        1. Siapa Saya ? \n
+        2. About Project ? \n
+        `,
+        createdAt: new Date(),
+        user: chatBot,
+      },
+      {
+        _id: 2,
+        text: 'Saya Adalah Mr. ChatBot',
+        createdAt: new Date(),
+        user: chatBot,
+      },
+      {
+        _id: 1,
+        text: 'Hi',
+        createdAt: new Date(),
+        user: chatBot,
+      },
+    ],
+    id: 1,
+    name: '',
   };
 
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
+  componentDidMount() {
+    this.keyboardDidShowSubscription = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        this.setState({keyboardStatus: 'Keyboard Shown'});
+      },
+    );
+    this.keyboardDidHideSubscription = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        this.setState({keyboardStatus: 'Keyboard Hidden'});
+      },
+    );
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+    Dialogflow_V2.setConfiguration(
+      dialogflow.client_email,
+      dialogflow.private_key,
+      Dialogflow_V2.LANG_ENGLISH_US,
+      dialogflow.project_id,
+    );
+  }
+
+  componentWillUnmount() {
+    this.keyboardDidShowSubscription.remove();
+    this.keyboardDidHideSubscription.remove();
+  }
+
+  handleGoogleResponse(result) {
+    let text = result.queryResult.fulfillmentMessages[0].text.text[0];
+
+    this.sendBotResponse(text);
+  }
+
+  sendBotResponse(text) {
+    let msg;
+    if (text == 'Terima kasih') {
+      msg = {
+        _id: this.state.messages.length + 1,
+        text: 'Terima kasih\ntelah menggunakan\nchatbot',
+        image:
+          'https://cdn.pixabay.com/photo/2019/03/21/15/51/chatbot-4071274_1280.jpg',
+        createdAt: new Date(),
+        user: chatBot,
+      };
+    } else {
+      msg = {
+        _id: this.state.messages.length + 1,
+        text: `${text}`,
+        createdAt: new Date(),
+        user: BOT,
+      };
+    }
+
+    this.setState(previousState => ({
+      messages: GiftedChat.append(previousState.messages, [msg]),
+    }));
+  }
+
+  onSend(messages = []) {
+    this.setState(previousState => ({
+      messages: GiftedChat.append(previousState.messages, messages),
+    }));
+    let message = messages[0].text;
+
+    Dialogflow_V2.requestQuery(
+      message,
+      result => this.handleGoogleResponse(result),
+      error => console.log(error),
+    );
+  }
+  onQuickReply(quick) {
+    this.setState(previousState => ({
+      messages: GiftedChat.append(previousState.messages, quick),
+    }));
+    let message = quick[0].value;
+
+    Dialogflow_V2.requestQuery(
+      message,
+      result => this.handleGoogleResponse(result),
+      error => console.log(error),
+    );
+  }
+  render() {
+    return (
+      <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <GiftedChat
+          messages={this.state.messages}
+          onSend={message => this.onSend(message)}
+          onQuickReply={quick => this.onQuickReply(quick)}
+          user={{_id: 1}}
+        />
+      </View>
+    );
+  }
+}
 
 export default App;
