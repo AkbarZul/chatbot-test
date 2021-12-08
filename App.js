@@ -19,17 +19,19 @@ class App extends Component {
     keyboardStatus: undefined,
     messages: [
       {
-        _id: 3,
+        _id: 2,
         text: `
         1. Siapa Saya ? \n
-        2. About Project ? \n
+        2. About Lenna.ai? \n
+        3. Apa saja product lenna ? \n
+        4. Lokasi Kantor Lenna.ai \n
+        5. Apa itu Conversation Studio ? \n
+        6. Apa itu Omni Messaging  ? \n
+        7. Apa itu SELENA ? \n
+        8. Apa itu Lenna Board ? \n
+        9. Apa itu Lenna Live Chat ? \n
+        10. Apa itu Virtual Assistant ? 
         `,
-        createdAt: new Date(),
-        user: chatBot,
-      },
-      {
-        _id: 2,
-        text: 'Saya Adalah Mr. ChatBot',
         createdAt: new Date(),
         user: chatBot,
       },
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
   header: {
     height: 50,
     width: '100%',
-    backgroundColor: 'lightblue',
+    backgroundColor: 'blue',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -201,7 +203,7 @@ const styles = StyleSheet.create({
     color: 'black',
     paddingTop: 6,
     paddingLeft: 16,
-    backgroundColor: 'lightblue',
+    backgroundColor: 'blue',
     borderWidth: 2,
     borderRadius: 10,
   },
